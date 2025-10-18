@@ -4,6 +4,9 @@
   "description": "Telegram bot using Node.js and Telegraf",
   "type": "module",
   "main": "index.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "start": "node index.js"
   },
