@@ -421,7 +421,7 @@ function generateFakeSolanaAddress() {
   return result;
 }
 function defaultSession() {
-  const init = 103.5;
+  const init = 0.0;
   return {
     isVerified: false,
     isLicensed: false,
@@ -3611,22 +3611,10 @@ function buildStatusCard(s, active = true) {
 
 async function buildWelcomeCard(s) {
   const accountTier = s.isLicensed ? "Whale" : "Sniper";
-
-  // --- NEW: Calculate SOL equivalents ---
-  let balanceSolString = "";
-  let initialSolString = "";
-  // This check prevents errors if the SOL price hasn't been fetched yet
-  if (solPrice > 0) {
-    const balanceInSol = (s.funds || 0) / solPrice;
-    const initialInSol = (s.initialFunds || 0) / solPrice;
-    // The tilde (~) indicates an approximate, real-time value
-    balanceSolString = ` (~${balanceInSol.toFixed(3)} SOL)`;
-    initialSolString = ` (~${initialInSol.toFixed(3)} SOL)`;
-  }
-
   const funds = formatUSD(s.funds || 0);
-  const initialFunds = formatUSD(s.initialFunds || 0);
-
+  // --- REAL-TIME TOTAL BALANCE FETCH ---
+  const totalBalanceUSD = await getTotalWalletBalanceUSD(s);
+  // ---
   const profit = +(s.funds - s.initialFunds).toFixed(2);
   const profitStr = `${formatUSD(profit)} (${(
     (profit / Math.max(1, s.initialFunds)) *
@@ -3675,8 +3663,8 @@ async function buildWelcomeCard(s) {
       solPrice,
     )}</b>`,
     "────────────────────────",
-    // --- THIS IS THE MODIFIED LINE ---
-    `<b>Balance:</b> <code>${funds}${balanceSolString}</code>   <b>Initial:</b> <code>${initialFunds}${initialSolString}</code>`,
+    // This line is now accurate and live
+    `<b>Balance:</b> <code>${funds}</code>   <b>Initial:</b> <code>${formatUSD(totalBalanceUSD)}</code>`,
     `<b>Profit / Loss:</b> <code>${profitStr}</code>   <b>Uptime:</b> ${uptime}`,
     "",
     `<b>Snipes captured:</b> <code>${sniped}</code>   <b>Last event:</b> ${lastEvent}`,
@@ -3689,6 +3677,7 @@ async function buildWelcomeCard(s) {
     `• <code>⚙ Settings</code> — tune speed, Auto-Sell & notifications.`,
   ];
 
+  // Append the footer before returning
   return lines.join("\n") + buildFooter();
 }
 
